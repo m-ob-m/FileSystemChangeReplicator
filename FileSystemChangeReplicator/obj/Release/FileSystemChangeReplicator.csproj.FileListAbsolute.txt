@@ -1,0 +1,9 @@
+C:\Users\m.maurice\source\repos\FileSystemChangeReplicator\FileSystemChangeReplicator\bin\Release\Graphics\TrayIcon.ico
+C:\Users\m.maurice\source\repos\FileSystemChangeReplicator\FileSystemChangeReplicator\bin\Release\config.ini
+C:\Users\m.maurice\source\repos\FileSystemChangeReplicator\FileSystemChangeReplicator\obj\Release\FileSystemChangeReplicator.csprojAssemblyReference.cache
+C:\Users\m.maurice\source\repos\FileSystemChangeReplicator\FileSystemChangeReplicator\obj\Release\FileSystemChangeReplicator.csproj.CoreCompileInputs.cache
+C:\Users\m.maurice\source\repos\FileSystemChangeReplicator\FileSystemChangeReplicator\bin\Release\FileSystemChangeReplicator.exe.config
+C:\Users\m.maurice\source\repos\FileSystemChangeReplicator\FileSystemChangeReplicator\bin\Release\FileSystemChangeReplicator.exe
+C:\Users\m.maurice\source\repos\FileSystemChangeReplicator\FileSystemChangeReplicator\bin\Release\FileSystemChangeReplicator.pdb
+C:\Users\m.maurice\source\repos\FileSystemChangeReplicator\FileSystemChangeReplicator\obj\Release\FileSystemChangeReplicator.exe
+C:\Users\m.maurice\source\repos\FileSystemChangeReplicator\FileSystemChangeReplicator\obj\Release\FileSystemChangeReplicator.pdb

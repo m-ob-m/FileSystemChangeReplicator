@@ -1,0 +1,17 @@
+C:\Users\m.maurice\source\repos\ConsoleApp1\ConsoleApp1\bin\Debug\ConsoleApp1.exe.config
+C:\Users\m.maurice\source\repos\ConsoleApp1\ConsoleApp1\bin\Debug\ConsoleApp1.exe
+C:\Users\m.maurice\source\repos\ConsoleApp1\ConsoleApp1\bin\Debug\ConsoleApp1.pdb
+C:\Users\m.maurice\source\repos\ConsoleApp1\ConsoleApp1\obj\Debug\FileSystemChangeReplicator.csprojAssemblyReference.cache
+C:\Users\m.maurice\source\repos\ConsoleApp1\ConsoleApp1\obj\Debug\FileSystemChangeReplicator.csproj.CoreCompileInputs.cache
+C:\Users\m.maurice\source\repos\ConsoleApp1\ConsoleApp1\obj\Debug\ConsoleApp1.exe
+C:\Users\m.maurice\source\repos\ConsoleApp1\ConsoleApp1\obj\Debug\ConsoleApp1.pdb
+C:\Users\m.maurice\source\repos\ConsoleApp1\ConsoleApp1\bin\Debug\config.ini
+C:\Users\m.maurice\source\repos\FileSystemChangeReplicator\FileSystemChangeReplicator\bin\Debug\config.ini
+C:\Users\m.maurice\source\repos\FileSystemChangeReplicator\FileSystemChangeReplicator\obj\Debug\FileSystemChangeReplicator.csprojAssemblyReference.cache
+C:\Users\m.maurice\source\repos\FileSystemChangeReplicator\FileSystemChangeReplicator\obj\Debug\FileSystemChangeReplicator.csproj.CoreCompileInputs.cache
+C:\Users\m.maurice\source\repos\FileSystemChangeReplicator\FileSystemChangeReplicator\bin\Debug\Graphics\TrayIcon.ico
+C:\Users\m.maurice\source\repos\FileSystemChangeReplicator\FileSystemChangeReplicator\bin\Debug\FileSystemChangeReplicator.exe.config
+C:\Users\m.maurice\source\repos\FileSystemChangeReplicator\FileSystemChangeReplicator\bin\Debug\FileSystemChangeReplicator.exe
+C:\Users\m.maurice\source\repos\FileSystemChangeReplicator\FileSystemChangeReplicator\bin\Debug\FileSystemChangeReplicator.pdb
+C:\Users\m.maurice\source\repos\FileSystemChangeReplicator\FileSystemChangeReplicator\obj\Debug\FileSystemChangeReplicator.exe
+C:\Users\m.maurice\source\repos\FileSystemChangeReplicator\FileSystemChangeReplicator\obj\Debug\FileSystemChangeReplicator.pdb
