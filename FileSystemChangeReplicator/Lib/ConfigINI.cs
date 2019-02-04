@@ -14,7 +14,10 @@ namespace FileSystemChangeReplicator
         {
             if (Instance == null)
             {
-                Instance = new ConfigINI(System.Windows.Forms.Application.StartupPath + "\\config.ini");
+                System.Uri applicationDirectoryUri = new System.Uri(System.AppDomain.CurrentDomain.BaseDirectory);
+                System.Uri applicationIniFileUri = new System.Uri(applicationDirectoryUri, "config.ini");
+                string applicationIniFilePath = System.Uri.UnescapeDataString(applicationIniFileUri.LocalPath);
+                Instance = new ConfigINI(applicationIniFilePath);
             }
 
             return Instance;

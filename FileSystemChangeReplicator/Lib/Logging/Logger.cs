@@ -6,7 +6,7 @@
 
         public static void Log(string text)
         {
-            System.Uri applicationDirectoryUri = new System.Uri(System.Windows.Forms.Application.StartupPath);
+            System.Uri applicationDirectoryUri = new System.Uri(System.AppDomain.CurrentDomain.BaseDirectory);
             System.Uri applicationLogFileUri = new System.Uri(applicationDirectoryUri, "log.txt");
             string applicationLogFilePath = System.Uri.UnescapeDataString(applicationLogFileUri.LocalPath);
             string currentDateTime = System.DateTime.Now.ToString("F");

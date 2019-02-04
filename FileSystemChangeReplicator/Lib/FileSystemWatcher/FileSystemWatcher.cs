@@ -201,12 +201,21 @@
                 }
                 catch (System.IO.FileNotFoundException)
                 {
+                    System.Console.WriteLine($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": The file doesn't exist.");
+                    Logging.Logger.Log($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": The file doesn't exist.");
                     return;
                 }
                 catch (System.Exception e)
                 {
-                    System.Console.WriteLine($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": {e.Message}.");
-                    Logging.Logger.Log($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": {e.Message}.");
+                    if (i < NUMBER_OF_RETRIES - 1)
+                    {
+                        System.Threading.Thread.Sleep(1000);
+                    }
+                    else
+                    {
+                        System.Console.WriteLine($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": {e.Message}.");
+                        Logging.Logger.Log($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": {e.Message}.");
+                    }
                 }
             }
         }
@@ -243,8 +252,15 @@
                 }
                 catch (System.Exception e)
                 {
-                    System.Console.WriteLine($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": {e.Message}.");
-                    Logging.Logger.Log($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": {e.Message}.");
+                    if(i < NUMBER_OF_RETRIES - 1)
+                    {
+                        System.Threading.Thread.Sleep(1000);
+                    }
+                    else
+                    {
+                        System.Console.WriteLine($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": {e.Message}.");
+                        Logging.Logger.Log($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": {e.Message}.");
+                    }
                 }
             }
             
@@ -262,20 +278,30 @@
             System.Uri newFullDestinationUri = new System.Uri(new System.Uri(destinationPath), newRelativeSourcePath);
             string oldFullDestinationPath = System.Uri.UnescapeDataString(oldFullDestinationUri.LocalPath);
             string newFullDestinationPath = System.Uri.UnescapeDataString(newFullDestinationUri.LocalPath);
-            try
+            for (int i = 0; i < NUMBER_OF_RETRIES; i++)
             {
-                FileFunctions.FileFunctions.MoveFileOrDirectory(oldFullDestinationPath, newFullDestinationPath);
-            }
-            catch (System.IO.FileNotFoundException)
-            {
-                // File might have been renamed during the creation process.
-                HandleCreatedEvent(newFullPath);
-                return;
-            }
-            catch (System.Exception e)
-            {
-                System.Console.WriteLine($"Error renaming \"{oldFullDestinationPath}\" to \"{newFullDestinationPath}\": {e.Message}.");
-                Logging.Logger.Log($"Error renaming \"{oldFullDestinationPath}\" to \"{newFullDestinationPath}\": {e.Message}.");
+                try
+                {
+                    FileFunctions.FileFunctions.MoveFileOrDirectory(oldFullDestinationPath, newFullDestinationPath);
+                }
+                catch (System.IO.FileNotFoundException)
+                {
+                    // File might have been renamed during the creation process.
+                    HandleCreatedEvent(newFullPath);
+                    return;
+                }
+                catch (System.Exception e)
+                {
+                    if (i < NUMBER_OF_RETRIES - 1)
+                    {
+                        System.Threading.Thread.Sleep(1000);
+                    }
+                    else
+                    {
+                        System.Console.WriteLine($"Error renaming \"{oldFullDestinationPath}\" to \"{newFullDestinationPath}\": {e.Message}.");
+                        Logging.Logger.Log($"Error renaming \"{oldFullDestinationPath}\" to \"{newFullDestinationPath}\": {e.Message}.");
+                    }
+                }
             }
         }
 
@@ -286,20 +312,28 @@
             string relativeSourcePath = System.Uri.UnescapeDataString(relativeSourceUri.ToString());
             System.Uri fullDestinationUri = new System.Uri(new System.Uri(destinationPath), relativeSourcePath);
             string fullDestinationPath = System.Uri.UnescapeDataString(fullDestinationUri.LocalPath);
-            try
+            for (int i = 0; i < NUMBER_OF_RETRIES; i++)
             {
-                FileFunctions.FileFunctions.DeleteFileOrDirectory(fullDestinationPath);
-            }
-            catch (System.IO.FileNotFoundException)
-            {
-                System.Console.WriteLine($"Error deleting \"{fullDestinationPath}\": The file doesn't exist.");
-                Logging.Logger.Log($"Error deleting \"{fullDestinationPath}\": The file doesn't exist.");
-                return;
-            }
-            catch (System.Exception e)
-            {
-                System.Console.WriteLine($"Error deleting \"{fullDestinationPath}\": {e.Message}.");
-                Logging.Logger.Log($"Error deleting \"{fullDestinationPath}\": {e.Message}.");
+                try
+                {
+                    FileFunctions.FileFunctions.DeleteFileOrDirectory(fullDestinationPath);
+                }
+                catch (System.IO.FileNotFoundException)
+                {
+                    return;
+                }
+                catch (System.Exception e)
+                {
+                    if (i < NUMBER_OF_RETRIES - 1)
+                    {
+                        System.Threading.Thread.Sleep(1000);
+                    }
+                    else
+                    {
+                        System.Console.WriteLine($"Error deleting \"{fullDestinationPath}\": {e.Message}.");
+                        Logging.Logger.Log($"Error deleting \"{fullDestinationPath}\": {e.Message}.");
+                    }
+                }
             }
         }
 
