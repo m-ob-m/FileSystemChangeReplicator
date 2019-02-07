@@ -8,15 +8,20 @@
 */
 namespace FileSystemChangeReplicator
 {
+    using System.Collections;
+    using System.IO;
+    using System.Windows.Forms;
+    using System;
+
     public class ConfigINI
     {
         public static ConfigINI GetInstance()
         {
             if (Instance == null)
             {
-                System.Uri applicationDirectoryUri = new System.Uri(System.AppDomain.CurrentDomain.BaseDirectory);
-                System.Uri applicationIniFileUri = new System.Uri(applicationDirectoryUri, "config.ini");
-                string applicationIniFilePath = System.Uri.UnescapeDataString(applicationIniFileUri.LocalPath);
+                Uri applicationDirectoryUri = new Uri(AppDomain.CurrentDomain.BaseDirectory);
+                Uri applicationIniFileUri = new Uri(applicationDirectoryUri, "config.ini");
+                string applicationIniFilePath = Uri.UnescapeDataString(applicationIniFileUri.LocalPath);
                 Instance = new ConfigINI(applicationIniFilePath);
             }
 
@@ -26,21 +31,21 @@ namespace FileSystemChangeReplicator
         private ConfigINI(string sINIPath)
         {
 
-            if (System.IO.File.Exists(sINIPath))
+            if (File.Exists(sINIPath))
             {
                 ReadINIFile(sINIPath);
             }
             else
             {
-                System.Windows.Forms.MessageBox.Show($"File \"{sINIPath}\" not found!");
-                System.Environment.Exit(0);
+                MessageBox.Show($"File \"{sINIPath}\" not found!");
+                Environment.Exit(0);
             }
         }
 
 
         private void ReadINIFile(string sINIPath)
         {
-            using (System.IO.StreamReader objReader = new System.IO.StreamReader(sINIPath))
+            using (StreamReader objReader = new StreamReader(sINIPath))
             {
                 while (objReader.Peek() != -1)
                 {
@@ -58,6 +63,6 @@ namespace FileSystemChangeReplicator
         }
 
         private static ConfigINI Instance = null;
-        public System.Collections.Hashtable Items { get; } = new System.Collections.Hashtable();
+        public Hashtable Items { get; } = new Hashtable();
     }
 }

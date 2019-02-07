@@ -1,5 +1,8 @@
 ﻿namespace FileSystemChangeReplicator.FileFunctions
 {
+    using System.IO;
+    using System;
+
     static class FileFunctions
     {
         public enum FileSystemElementType { FILE = 1, DIRECTORY = 2}
@@ -8,14 +11,14 @@
         {
             try
             {
-                System.IO.Path.GetFullPath(path);
+                Path.GetFullPath(path);
             }
             catch (System.Exception)
             {
                 return false;
             }
 
-            if (!System.IO.Path.IsPathRooted(path))
+            if (!Path.IsPathRooted(path))
             {
                 return false;
             }
@@ -25,67 +28,81 @@
 
         public static FileSystemElementType GetFileSystemElementType(string path)
         {
-            if (System.IO.File.GetAttributes(path) == System.IO.FileAttributes.Directory)
+            if (File.GetAttributes(path) == FileAttributes.Directory)
             {
                 return FileSystemElementType.DIRECTORY;
             }
             return FileSystemElementType.FILE;
         }
 
-        public static void CopyFileOrDirectory(string sourcePath, string destinationPath)
+        public static void CopyFileOrDirectory(string sourcePath, string destinationPath, bool createLocationIfNotExists = true)
         {
             if (GetFileSystemElementType(sourcePath) == FileSystemElementType.DIRECTORY)
             {
-                System.IO.Directory.CreateDirectory(destinationPath);
-                System.Uri fullSourceDirectoryUri = new System.Uri(sourcePath);
-                System.Uri fullDestinationDirectoryUri = new System.Uri(destinationPath);
-                foreach (string subdirectoryPath in System.IO.Directory.GetDirectories(sourcePath, "*", System.IO.SearchOption.AllDirectories))
+                Directory.CreateDirectory(destinationPath);
+                Uri fullSourceDirectoryUri = new Uri(sourcePath);
+                Uri fullDestinationDirectoryUri = new Uri(destinationPath);
+                foreach (string subdirectoryPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
                 {
-                    System.Uri fullSourceSubdirectoryUri = new System.Uri(subdirectoryPath);
-                    System.Uri relativeSourceSubdirectoryUri = fullSourceDirectoryUri.MakeRelativeUri(fullSourceSubdirectoryUri);
-                    string relativeSourceSubdirectoryPath = System.Uri.UnescapeDataString(relativeSourceSubdirectoryUri.ToString());
-                    System.Uri fullDestinationSubdirectoryUri = new System.Uri(fullDestinationDirectoryUri, relativeSourceSubdirectoryPath);
-                    string fullDestinationSubdirectoryPath = System.Uri.UnescapeDataString(fullDestinationSubdirectoryUri.LocalPath);
-                    System.IO.Directory.CreateDirectory(fullDestinationSubdirectoryPath);
+                    Uri fullSourceSubdirectoryUri = new Uri(subdirectoryPath);
+                    Uri relativeSourceSubdirectoryUri = fullSourceDirectoryUri.MakeRelativeUri(fullSourceSubdirectoryUri);
+                    string relativeSourceSubdirectoryPath = Uri.UnescapeDataString(relativeSourceSubdirectoryUri.ToString());
+                    Uri fullDestinationSubdirectoryUri = new Uri(fullDestinationDirectoryUri, relativeSourceSubdirectoryPath);
+                    string fullDestinationSubdirectoryPath = Uri.UnescapeDataString(fullDestinationSubdirectoryUri.LocalPath);
+                    Directory.CreateDirectory(fullDestinationSubdirectoryPath);
                 }
 
-                foreach (string filePath in System.IO.Directory.GetFiles(sourcePath, "*", System.IO.SearchOption.AllDirectories))
+                foreach (string filePath in Directory.GetFiles(sourcePath, "*", SearchOption.AllDirectories))
                 {
-                    System.Uri fullSourceFileUri = new System.Uri(filePath);
-                    System.Uri relativeSourceFileUri = fullSourceDirectoryUri.MakeRelativeUri(fullSourceFileUri);
-                    string relativeSourceFilePath = System.Uri.UnescapeDataString(relativeSourceFileUri.ToString());
-                    System.Uri fullDestinationFileUri = new System.Uri(fullDestinationDirectoryUri, relativeSourceFileUri);
-                    string fullDestinationFilePath = System.Uri.UnescapeDataString(fullDestinationFileUri.LocalPath);
-                    System.IO.File.Copy(fullSourceFileUri.LocalPath, fullDestinationFileUri.LocalPath, true);
+                    Uri fullSourceFileUri = new Uri(filePath);
+                    Uri relativeSourceFileUri = fullSourceDirectoryUri.MakeRelativeUri(fullSourceFileUri);
+                    string relativeSourceFilePath = Uri.UnescapeDataString(relativeSourceFileUri.ToString());
+                    Uri fullDestinationFileUri = new Uri(fullDestinationDirectoryUri, relativeSourceFileUri);
+                    string fullDestinationFilePath = Uri.UnescapeDataString(fullDestinationFileUri.LocalPath);
+                    File.Copy(fullSourceFileUri.LocalPath, fullDestinationFileUri.LocalPath, true);
                 }
             }
             else
             {
-                System.IO.File.Copy(sourcePath, destinationPath, true);
+                DirectoryInfo destinationDirectory = new FileInfo(destinationPath).Directory;
+                if (!destinationDirectory.Exists)
+                {
+                    if (createLocationIfNotExists)
+                    {
+                        destinationDirectory.Create();
+                    }
+                    else
+                    {
+                        throw new Exception(
+                            $"Cannot create file \"{destinationPath}\". Output directory \"{destinationDirectory.FullName}\" doesn't exist."
+                        );
+                    }
+                }
+                File.Copy(sourcePath, destinationPath, true);
             }
         }
 
         public static void MoveFileOrDirectory(string sourcePath, string destinationPath)
         {
-            if (System.IO.File.GetAttributes(sourcePath) == System.IO.FileAttributes.Directory)
+            if (File.GetAttributes(sourcePath) == FileAttributes.Directory)
             {
-                System.IO.Directory.Move(sourcePath, destinationPath);
+                Directory.Move(sourcePath, destinationPath);
             }
             else
             {
-                System.IO.File.Move(sourcePath, destinationPath);
+                File.Move(sourcePath, destinationPath);
             }
         }
 
         public static void DeleteFileOrDirectory(string path)
         {
-            if (System.IO.File.GetAttributes(path) == System.IO.FileAttributes.Directory)
+            if (File.GetAttributes(path) == FileAttributes.Directory)
             {
-                System.IO.Directory.Delete(path);
+                Directory.Delete(path);
             }
             else
             {
-                System.IO.File.Delete(path);
+                File.Delete(path);
             }
         }
     }

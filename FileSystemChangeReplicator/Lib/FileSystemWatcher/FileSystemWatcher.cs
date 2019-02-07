@@ -1,14 +1,21 @@
 ﻿namespace FileSystemChangeReplicator.FileSystemWatcher
 {
-    class FileSystemWatcher
+    using FileSystemChangeReplicator.FileFunctions;
+    using FileSystemChangeReplicator.Logging;
+    using System.IO;
+    using System.Runtime.Caching;
+    using System.Threading;
+    using System;
+
+    class FileSystemWatcher2
     {
-        [System.Flags] public enum EventIDs {NONE = 0, CREATED = 1, CHANGED = 2, RENAMED = 4, DELETED = 8, ALL = 15}
+        [Flags] public enum EventIDs {NONE = 0, CREATED = 1, CHANGED = 2, RENAMED = 4, DELETED = 8, ALL = 15}
         private string sourcePath;
         private string destinationPath;
         private EventIDs events;
-        private System.IO.FileSystemWatcher watcher;
-        private readonly System.Runtime.Caching.MemoryCache memoryCache;
-        private readonly System.Runtime.Caching.CacheItemPolicy cacheItemPolicy;
+        private FileSystemWatcher watcher;
+        private readonly MemoryCache memoryCache;
+        private readonly CacheItemPolicy cacheItemPolicy;
         private const int CACHE_TIME_MILLISECONDS = 1000;
         private const int NUMBER_OF_RETRIES = 5;
         public class FileSystemWatcherEventDescription
@@ -18,22 +25,23 @@
             public string previousFilePath;
         }
 
-        public FileSystemWatcher(string sourcePath, string destinationPath, EventIDs events)
+        public FileSystemWatcher2(string sourcePath, string destinationPath, EventIDs events)
         {
             this.sourcePath = sourcePath;
             this.destinationPath = destinationPath;
             this.events = events;
             Running = false;
-            watcher = new System.IO.FileSystemWatcher();
-            memoryCache = System.Runtime.Caching.MemoryCache.Default;
-            cacheItemPolicy = new System.Runtime.Caching.CacheItemPolicy()
+            watcher = new FileSystemWatcher();
+            memoryCache = MemoryCache.Default;
+            cacheItemPolicy = new CacheItemPolicy()
             {
                 RemovedCallback = OnRemovedFromCache
             };
         }
 
-        ~FileSystemWatcher()
+        ~FileSystemWatcher2()
         {
+            memoryCache.Dispose();
             watcher.Dispose();
             watcher = null;
         }
@@ -42,27 +50,27 @@
         {
             watcher.Filter = "*";
             watcher.IncludeSubdirectories = true;
-            watcher.NotifyFilter = System.IO.NotifyFilters.LastWrite | System.IO.NotifyFilters.FileName | System.IO.NotifyFilters.DirectoryName;
+            watcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
             watcher.Path = sourcePath;
 
             // Enable events.
             if ((events & EventIDs.CREATED) > 0)
             {
-                watcher.Created += new System.IO.FileSystemEventHandler(OnCreated);
+                watcher.Created += new FileSystemEventHandler(OnCreated);
             }
             if ((events & EventIDs.CHANGED) > 0)
             {
-                watcher.Changed += new System.IO.FileSystemEventHandler(OnChanged);
+                watcher.Changed += new FileSystemEventHandler(OnChanged);
             }
             if ((events & EventIDs.RENAMED) > 0)
             {
-                watcher.Renamed += new System.IO.RenamedEventHandler(OnRenamed);
+                watcher.Renamed += new RenamedEventHandler(OnRenamed);
             }
             if ((events & EventIDs.DELETED) > 0)
             {
-                watcher.Deleted += new System.IO.FileSystemEventHandler(OnDeleted);
+                watcher.Deleted += new FileSystemEventHandler(OnDeleted);
             }
-            watcher.Error += new System.IO.ErrorEventHandler(OnError);
+            watcher.Error += new ErrorEventHandler(OnError);
             watcher.EnableRaisingEvents = true;
             Running = true;
         }
@@ -70,18 +78,18 @@
         public void Stop()
         {
             // Disable events.
-            watcher.Created -= new System.IO.FileSystemEventHandler(OnCreated);
-            watcher.Changed -= new System.IO.FileSystemEventHandler(OnChanged);
-            watcher.Renamed -= new System.IO.RenamedEventHandler(OnRenamed);
-            watcher.Deleted -= new System.IO.FileSystemEventHandler(OnDeleted);
-            watcher.Error -= new System.IO.ErrorEventHandler(OnError);
+            watcher.Created -= new FileSystemEventHandler(OnCreated);
+            watcher.Changed -= new FileSystemEventHandler(OnChanged);
+            watcher.Renamed -= new RenamedEventHandler(OnRenamed);
+            watcher.Deleted -= new FileSystemEventHandler(OnDeleted);
+            watcher.Error -= new ErrorEventHandler(OnError);
             watcher.EnableRaisingEvents = false;
             Running = false;
         }
 
-        private void OnChanged(object source, System.IO.FileSystemEventArgs myEvent)
+        private void OnChanged(object source, FileSystemEventArgs myEvent)
         {
-            cacheItemPolicy.AbsoluteExpiration = System.DateTimeOffset.Now.AddMilliseconds(CACHE_TIME_MILLISECONDS);
+            cacheItemPolicy.AbsoluteExpiration = DateTimeOffset.Now.AddMilliseconds(CACHE_TIME_MILLISECONDS);
 
             // Only add if it is not there already (swallow others)
             FileSystemWatcherEventDescription eventParameters = new FileSystemWatcherEventDescription()
@@ -93,9 +101,9 @@
             memoryCache.AddOrGetExisting($"{myEvent.FullPath}_Changed", eventParameters, cacheItemPolicy);
         }
 
-        private void OnCreated(object source, System.IO.FileSystemEventArgs myEvent)
+        private void OnCreated(object source, FileSystemEventArgs myEvent)
         {
-            cacheItemPolicy.AbsoluteExpiration = System.DateTimeOffset.Now.AddMilliseconds(CACHE_TIME_MILLISECONDS);
+            cacheItemPolicy.AbsoluteExpiration = DateTimeOffset.Now.AddMilliseconds(CACHE_TIME_MILLISECONDS);
 
             // Only add if it is not there already (swallow others)
             FileSystemWatcherEventDescription eventParameters = new FileSystemWatcherEventDescription()
@@ -107,9 +115,9 @@
             memoryCache.AddOrGetExisting($"{myEvent.FullPath}_Created", eventParameters, cacheItemPolicy);
         }
 
-        private void OnRenamed(object source, System.IO.RenamedEventArgs myEvent)
+        private void OnRenamed(object source, RenamedEventArgs myEvent)
         {
-            cacheItemPolicy.AbsoluteExpiration = System.DateTimeOffset.Now.AddMilliseconds(CACHE_TIME_MILLISECONDS);
+            cacheItemPolicy.AbsoluteExpiration = DateTimeOffset.Now.AddMilliseconds(CACHE_TIME_MILLISECONDS);
 
             // Only add if it is not there already (swallow others)
             FileSystemWatcherEventDescription eventParameters = new FileSystemWatcherEventDescription()
@@ -121,9 +129,9 @@
             memoryCache.AddOrGetExisting($"{myEvent.FullPath}_Renamed", eventParameters, cacheItemPolicy);
         }
 
-        private void OnDeleted(object source, System.IO.FileSystemEventArgs myEvent)
+        private void OnDeleted(object source, FileSystemEventArgs myEvent)
         {
-            cacheItemPolicy.AbsoluteExpiration = System.DateTimeOffset.Now.AddMilliseconds(System.Math.Floor((double)CACHE_TIME_MILLISECONDS/2));
+            cacheItemPolicy.AbsoluteExpiration = DateTimeOffset.Now.AddMilliseconds(CACHE_TIME_MILLISECONDS);
 
             // Only add if it is not there already (swallow others)
             FileSystemWatcherEventDescription eventParameters = new FileSystemWatcherEventDescription()
@@ -135,32 +143,32 @@
             memoryCache.AddOrGetExisting($"{myEvent.FullPath}_Deleted", eventParameters, cacheItemPolicy);
         }
 
-        private void OnError(object source, System.IO.ErrorEventArgs myEvent)
+        private void OnError(object source, ErrorEventArgs myEvent)
         {
-            if (myEvent.GetException().GetType() == typeof(System.IO.InternalBufferOverflowException))
+            if (myEvent.GetException().GetType() == typeof(InternalBufferOverflowException))
             {
                 //  This can happen if Windows is reporting many file system events quickly 
                 //  and internal buffer of the  FileSystemWatcher is not large enough to handle this
                 //  rate of events. The InternalBufferOverflowException error informs the application
                 //  that some of the file system events are being lost.
-                System.Console.WriteLine($"The file system watcher experienced an internal buffer overflow: {myEvent.GetException().Message}.");
-                Logging.Logger.Log($"The file system watcher experienced an internal buffer overflow: {myEvent.GetException().Message}.");
+                Console.WriteLine($"The file system watcher experienced an internal buffer overflow: {myEvent.GetException().Message}");
+                Logger.Log($"The file system watcher experienced an internal buffer overflow: {myEvent.GetException().Message}");
             }
             else
             {
-                System.Console.WriteLine($"The file sytem watcher has trigerred an unknown error: {myEvent.GetException().Message}.");
-                Logging.Logger.Log($"The file sytem watcher has trigerred an unknown error: {myEvent.GetException().Message}.");
+                Console.WriteLine($"The file sytem watcher has trigerred an unknown error: {myEvent.GetException().Message}");
+                Logger.Log($"The file sytem watcher has trigerred an unknown error: {myEvent.GetException().Message}");
             }
         }
 
-        private void OnRemovedFromCache(System.Runtime.Caching.CacheEntryRemovedArguments arguments)
+        private void OnRemovedFromCache(CacheEntryRemovedArguments arguments)
         {
-            if (arguments.RemovedReason != System.Runtime.Caching.CacheEntryRemovedReason.Expired)
+            if (arguments.RemovedReason != CacheEntryRemovedReason.Expired)
             {
                 return;
             }
 
-            new System.Threading.Thread(
+            new Thread(
                 delegate ()
                 {
                     FileSystemWatcherEventDescription myEventDescription = (FileSystemWatcherEventDescription)arguments.CacheItem.Value;
@@ -187,34 +195,40 @@
 
         private void HandleCreatedEvent(string fullSourcePath)
         {
-            System.Uri fullSourceUri = new System.Uri(fullSourcePath);
-            System.Uri relativeSourceUri = new System.Uri(sourcePath).MakeRelativeUri(fullSourceUri);
-            string relativeSourcePath = System.Uri.UnescapeDataString(relativeSourceUri.ToString());
-            System.Uri fullDestinationUri = new System.Uri(new System.Uri(destinationPath), relativeSourcePath);
-            string fullDestinationPath = System.Uri.UnescapeDataString(fullDestinationUri.LocalPath);
+            Uri fullSourceUri = new Uri(fullSourcePath);
+            Uri relativeSourceUri = new Uri(sourcePath).MakeRelativeUri(fullSourceUri);
+            string relativeSourcePath = Uri.UnescapeDataString(relativeSourceUri.ToString());
+            Uri fullDestinationUri = new Uri(new Uri(destinationPath), relativeSourcePath);
+            string fullDestinationPath = Uri.UnescapeDataString(fullDestinationUri.LocalPath);
             for (int i = 0; i < NUMBER_OF_RETRIES; i++)
             {
                 try
                 {
-                    FileFunctions.FileFunctions.CopyFileOrDirectory(fullSourcePath, fullDestinationPath);
-                    return;
+                    FileFunctions.CopyFileOrDirectory(fullSourcePath, fullDestinationPath, createLocationIfNotExists: true);
+                    break;
                 }
-                catch (System.IO.FileNotFoundException)
-                {
-                    System.Console.WriteLine($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": The file doesn't exist.");
-                    Logging.Logger.Log($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": The file doesn't exist.");
-                    return;
-                }
-                catch (System.Exception e)
+                catch (FileNotFoundException)
                 {
                     if (i < NUMBER_OF_RETRIES - 1)
                     {
-                        System.Threading.Thread.Sleep(1000);
+                        Thread.Sleep(1000);
                     }
                     else
                     {
-                        System.Console.WriteLine($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": {e.Message}.");
-                        Logging.Logger.Log($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": {e.Message}.");
+                        Console.WriteLine($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": The file doesn't exist.");
+                        Logger.Log($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": The file doesn't exist.");
+                    }
+                }
+                catch (Exception e)
+                {
+                    if (i < NUMBER_OF_RETRIES - 1)
+                    {
+                        Thread.Sleep(1000);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": {e.Message}");
+                        Logger.Log($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": {e.Message}");
                     }
                 }
             }
@@ -222,7 +236,42 @@
 
         private void HandleChangedEvent(string fullSourcePath)
         {
-            if(FileFunctions.FileFunctions.GetFileSystemElementType(fullSourcePath) == FileFunctions.FileFunctions.FileSystemElementType.DIRECTORY)
+            FileFunctions.FileSystemElementType sourceElementType = FileFunctions.FileSystemElementType.FILE;
+            for (int i = 0; i < NUMBER_OF_RETRIES; i++)
+            {
+                try
+                {
+                    sourceElementType = FileFunctions.GetFileSystemElementType(fullSourcePath);
+                    break;
+                }
+                catch (FileNotFoundException)
+                {
+                    if (i < NUMBER_OF_RETRIES - 1)
+                    {
+                        Thread.Sleep(1000);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Error getting information on \"{fullSourcePath}\": The file system element doesn't exist.");
+                        Logger.Log($"Error getting information on \"{fullSourcePath}\": The file system element doesn't exist.");
+                    }
+                }
+                catch (Exception e)
+                {
+                    if (i < NUMBER_OF_RETRIES - 1)
+                    {
+                        Thread.Sleep(1000);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Error getting information on \"{fullSourcePath}\": {e.Message}");
+                        Logger.Log($"Error getting information on \"{fullSourcePath}\": {e.Message}");
+                    }
+                }
+            }
+
+
+            if (sourceElementType == FileFunctions.FileSystemElementType.DIRECTORY)
             {
                 /* 
                  * In order to reduce the likelihood of events getting fired twice, the change events on directories will be ignored.
@@ -232,34 +281,40 @@
                 return;
             }
 
-            System.Uri fullSourceUri = new System.Uri(fullSourcePath);
-            System.Uri relativeSourceUri = new System.Uri(sourcePath).MakeRelativeUri(fullSourceUri);
-            string relativeSourcePath = System.Uri.UnescapeDataString(relativeSourceUri.ToString());
-            System.Uri fullDestinationUri = new System.Uri(new System.Uri(destinationPath), relativeSourcePath);
-            string fullDestinationPath = System.Uri.UnescapeDataString(fullDestinationUri.LocalPath);
+            Uri fullSourceUri = new Uri(fullSourcePath);
+            Uri relativeSourceUri = new Uri(sourcePath).MakeRelativeUri(fullSourceUri);
+            string relativeSourcePath = Uri.UnescapeDataString(relativeSourceUri.ToString());
+            Uri fullDestinationUri = new Uri(new Uri(destinationPath), relativeSourcePath);
+            string fullDestinationPath = Uri.UnescapeDataString(fullDestinationUri.LocalPath);
             for(int i = 0; i < NUMBER_OF_RETRIES; i++)
             {
                 try
                 {
-                    FileFunctions.FileFunctions.CopyFileOrDirectory(fullSourcePath, fullDestinationPath);
-                    return;
+                    FileFunctions.CopyFileOrDirectory(fullSourcePath, fullDestinationPath, createLocationIfNotExists: true);
+                    break;
                 }
-                catch (System.IO.FileNotFoundException)
+                catch (FileNotFoundException)
                 {
-                    System.Console.WriteLine($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": The file doesn't exist.");
-                    Logging.Logger.Log($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": The file doesn't exist.");
-                    return;
-                }
-                catch (System.Exception e)
-                {
-                    if(i < NUMBER_OF_RETRIES - 1)
+                    if (i < NUMBER_OF_RETRIES - 1)
                     {
-                        System.Threading.Thread.Sleep(1000);
+                        Thread.Sleep(1000);
                     }
                     else
                     {
-                        System.Console.WriteLine($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": {e.Message}.");
-                        Logging.Logger.Log($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": {e.Message}.");
+                        Console.WriteLine($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": The file doesn't exist.");
+                        Logger.Log($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": The file doesn't exist.");
+                    }
+                }
+                catch (Exception e)
+                {
+                    if(i < NUMBER_OF_RETRIES - 1)
+                    {
+                        Thread.Sleep(1000);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": {e.Message}");
+                        Logger.Log($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": {e.Message}");
                     }
                 }
             }
@@ -268,38 +323,39 @@
 
         private void HandleRenamedEvent(string oldFullPath, string newFullPath)
         {
-            System.Uri oldFullSourceUri = new System.Uri(oldFullPath);
-            System.Uri newFullSourceUri = new System.Uri(newFullPath);
-            System.Uri oldRelativeSourceUri = new System.Uri(sourcePath).MakeRelativeUri(oldFullSourceUri);
-            System.Uri newRelativeSourceUri = new System.Uri(sourcePath).MakeRelativeUri(newFullSourceUri);
-            string oldRelativeSourcePath = System.Uri.UnescapeDataString(oldRelativeSourceUri.ToString());
-            string newRelativeSourcePath = System.Uri.UnescapeDataString(newRelativeSourceUri.ToString());
-            System.Uri oldFullDestinationUri = new System.Uri(new System.Uri(destinationPath), oldRelativeSourcePath);
-            System.Uri newFullDestinationUri = new System.Uri(new System.Uri(destinationPath), newRelativeSourcePath);
-            string oldFullDestinationPath = System.Uri.UnescapeDataString(oldFullDestinationUri.LocalPath);
-            string newFullDestinationPath = System.Uri.UnescapeDataString(newFullDestinationUri.LocalPath);
+            Uri oldFullSourceUri = new Uri(oldFullPath);
+            Uri newFullSourceUri = new Uri(newFullPath);
+            Uri oldRelativeSourceUri = new Uri(sourcePath).MakeRelativeUri(oldFullSourceUri);
+            Uri newRelativeSourceUri = new Uri(sourcePath).MakeRelativeUri(newFullSourceUri);
+            string oldRelativeSourcePath = Uri.UnescapeDataString(oldRelativeSourceUri.ToString());
+            string newRelativeSourcePath = Uri.UnescapeDataString(newRelativeSourceUri.ToString());
+            Uri oldFullDestinationUri = new Uri(new Uri(destinationPath), oldRelativeSourcePath);
+            Uri newFullDestinationUri = new Uri(new Uri(destinationPath), newRelativeSourcePath);
+            string oldFullDestinationPath = Uri.UnescapeDataString(oldFullDestinationUri.LocalPath);
+            string newFullDestinationPath = Uri.UnescapeDataString(newFullDestinationUri.LocalPath);
             for (int i = 0; i < NUMBER_OF_RETRIES; i++)
             {
                 try
                 {
-                    FileFunctions.FileFunctions.MoveFileOrDirectory(oldFullDestinationPath, newFullDestinationPath);
+                    FileFunctions.MoveFileOrDirectory(oldFullDestinationPath, newFullDestinationPath);
+                    break;
                 }
-                catch (System.IO.FileNotFoundException)
+                catch (FileNotFoundException)
                 {
                     // File might have been renamed during the creation process.
                     HandleCreatedEvent(newFullPath);
-                    return;
+                    break;
                 }
                 catch (System.Exception e)
                 {
                     if (i < NUMBER_OF_RETRIES - 1)
                     {
-                        System.Threading.Thread.Sleep(1000);
+                        Thread.Sleep(1000);
                     }
                     else
                     {
-                        System.Console.WriteLine($"Error renaming \"{oldFullDestinationPath}\" to \"{newFullDestinationPath}\": {e.Message}.");
-                        Logging.Logger.Log($"Error renaming \"{oldFullDestinationPath}\" to \"{newFullDestinationPath}\": {e.Message}.");
+                        Console.WriteLine($"Error renaming \"{oldFullDestinationPath}\" to \"{newFullDestinationPath}\": {e.Message}");
+                        Logger.Log($"Error renaming \"{oldFullDestinationPath}\" to \"{newFullDestinationPath}\": {e.Message}");
                     }
                 }
             }
@@ -307,31 +363,40 @@
 
         private void HandleDeletedEvent(string fullSourcePath)
         {
-            System.Uri fullSourceUri = new System.Uri(fullSourcePath);
-            System.Uri relativeSourceUri = new System.Uri(sourcePath).MakeRelativeUri(fullSourceUri);
-            string relativeSourcePath = System.Uri.UnescapeDataString(relativeSourceUri.ToString());
-            System.Uri fullDestinationUri = new System.Uri(new System.Uri(destinationPath), relativeSourcePath);
-            string fullDestinationPath = System.Uri.UnescapeDataString(fullDestinationUri.LocalPath);
+            Uri fullSourceUri = new Uri(fullSourcePath);
+            Uri relativeSourceUri = new Uri(sourcePath).MakeRelativeUri(fullSourceUri);
+            string relativeSourcePath = Uri.UnescapeDataString(relativeSourceUri.ToString());
+            Uri fullDestinationUri = new Uri(new Uri(destinationPath), relativeSourcePath);
+            string fullDestinationPath = Uri.UnescapeDataString(fullDestinationUri.LocalPath);
             for (int i = 0; i < NUMBER_OF_RETRIES; i++)
             {
                 try
                 {
-                    FileFunctions.FileFunctions.DeleteFileOrDirectory(fullDestinationPath);
+                    FileFunctions.DeleteFileOrDirectory(fullDestinationPath);
+                    break;
                 }
-                catch (System.IO.FileNotFoundException)
-                {
-                    return;
-                }
-                catch (System.Exception e)
+                catch (FileNotFoundException e)
                 {
                     if (i < NUMBER_OF_RETRIES - 1)
                     {
-                        System.Threading.Thread.Sleep(1000);
+                        Thread.Sleep(1000);
                     }
                     else
                     {
-                        System.Console.WriteLine($"Error deleting \"{fullDestinationPath}\": {e.Message}.");
-                        Logging.Logger.Log($"Error deleting \"{fullDestinationPath}\": {e.Message}.");
+                        Console.WriteLine($"Error deleting \"{fullDestinationPath}\": the file could not be found.");
+                        Logger.Log($"Error deleting \"{fullDestinationPath}\":  could not be found.");
+                    }
+                }
+                catch (Exception e)
+                {
+                    if (i < NUMBER_OF_RETRIES - 1)
+                    {
+                        Thread.Sleep(1000);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Error deleting \"{fullDestinationPath}\": {e.Message}");
+                        Logger.Log($"Error deleting \"{fullDestinationPath}\": {e.Message}");
                     }
                 }
             }

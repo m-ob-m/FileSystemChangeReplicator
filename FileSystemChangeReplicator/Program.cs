@@ -1,27 +1,30 @@
 ﻿namespace FileSystemChangeReplicator
 {
+    using System.Windows.Forms;
+    using System;
+    using Logging;
+
     class Program
     {
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
-        [System.STAThread]
+        [STAThread]
         static void Main(string[] args)
         {
-            System.Windows.Forms.Application.EnableVisualStyles();
-            System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
-            try
-            {
-                System.Windows.Forms.Application.Run(new AppContext());
-            }
-            catch (System.Exception exception)
-            {
-                System.Console.WriteLine(exception.StackTrace);
-                using (System.IO.StreamWriter sw = System.IO.File.AppendText("error.txt"))
-                {
-                    sw.WriteLine(exception.Message + "\n" + exception.StackTrace);
-                }
-            }
+            AppDomain.CurrentDomain.UnhandledException += 
+                (sender, arguments) => HandleUnhandledException(arguments.ExceptionObject as Exception);
+            Application.ThreadException += (sender, arguments) => HandleUnhandledException(arguments.Exception);
+
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new AppContext());
+        }
+
+        static void HandleUnhandledException(System.Exception exception)
+        {
+            Console.WriteLine($"The following is an uncaught exception message.\n{exception.Message}: {exception.StackTrace}");
+            Logger.Log($"The following is an uncaught exception message.\n{exception.Message}: {exception.StackTrace}");
         }
     }
 }
