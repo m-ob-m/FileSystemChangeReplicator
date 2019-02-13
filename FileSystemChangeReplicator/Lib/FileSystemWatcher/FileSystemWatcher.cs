@@ -219,7 +219,7 @@
                         Logger.Log($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": The file doesn't exist.");
                     }
                 }
-                catch (Exception e)
+                catch (Exception exception)
                 {
                     if (i < NUMBER_OF_RETRIES - 1)
                     {
@@ -227,8 +227,8 @@
                     }
                     else
                     {
-                        Console.WriteLine($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": {e.Message}");
-                        Logger.Log($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": {e.Message}");
+                        Console.WriteLine($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": {exception.Message}");
+                        Logger.Log($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": {exception.Message}");
                     }
                 }
             }
@@ -256,7 +256,7 @@
                         Logger.Log($"Error getting information on \"{fullSourcePath}\": The file system element doesn't exist.");
                     }
                 }
-                catch (Exception e)
+                catch (Exception exception)
                 {
                     if (i < NUMBER_OF_RETRIES - 1)
                     {
@@ -264,8 +264,8 @@
                     }
                     else
                     {
-                        Console.WriteLine($"Error getting information on \"{fullSourcePath}\": {e.Message}");
-                        Logger.Log($"Error getting information on \"{fullSourcePath}\": {e.Message}");
+                        Console.WriteLine($"Error getting information on \"{fullSourcePath}\": {exception.Message}");
+                        Logger.Log($"Error getting information on \"{fullSourcePath}\": {exception.Message}");
                     }
                 }
             }
@@ -305,7 +305,7 @@
                         Logger.Log($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": The file doesn't exist.");
                     }
                 }
-                catch (Exception e)
+                catch (Exception exception)
                 {
                     if(i < NUMBER_OF_RETRIES - 1)
                     {
@@ -313,8 +313,8 @@
                     }
                     else
                     {
-                        Console.WriteLine($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": {e.Message}");
-                        Logger.Log($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": {e.Message}");
+                        Console.WriteLine($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": {exception.Message}");
+                        Logger.Log($"Error copying \"{fullSourcePath}\" to \"{fullDestinationPath}\": {exception.Message}");
                     }
                 }
             }
@@ -346,7 +346,7 @@
                     HandleCreatedEvent(newFullPath);
                     break;
                 }
-                catch (System.Exception e)
+                catch (Exception e)
                 {
                     if (i < NUMBER_OF_RETRIES - 1)
                     {
@@ -375,7 +375,7 @@
                     FileFunctions.DeleteFileOrDirectory(fullDestinationPath);
                     break;
                 }
-                catch (FileNotFoundException e)
+                catch (FileNotFoundException)
                 {
                     if (i < NUMBER_OF_RETRIES - 1)
                     {
@@ -387,7 +387,7 @@
                         Logger.Log($"Error deleting \"{fullDestinationPath}\":  could not be found.");
                     }
                 }
-                catch (Exception e)
+                catch (Exception exception)
                 {
                     if (i < NUMBER_OF_RETRIES - 1)
                     {
@@ -395,8 +395,8 @@
                     }
                     else
                     {
-                        Console.WriteLine($"Error deleting \"{fullDestinationPath}\": {e.Message}");
-                        Logger.Log($"Error deleting \"{fullDestinationPath}\": {e.Message}");
+                        Console.WriteLine($"Error deleting \"{fullDestinationPath}\": {exception.Message}");
+                        Logger.Log($"Error deleting \"{fullDestinationPath}\": {exception.Message}");
                     }
                 }
             }

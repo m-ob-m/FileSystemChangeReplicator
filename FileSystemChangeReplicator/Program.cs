@@ -21,7 +21,7 @@
             Application.Run(new AppContext());
         }
 
-        static void HandleUnhandledException(System.Exception exception)
+        static void HandleUnhandledException(Exception exception)
         {
             Console.WriteLine($"The following is an uncaught exception message.\n{exception.Message}: {exception.StackTrace}");
             Logger.Log($"The following is an uncaught exception message.\n{exception.Message}: {exception.StackTrace}");
